@@ -84,4 +84,6 @@ export default {
   noLoginVisit: 'Cannot access without login',
   loading: 'Loading',
   uploadFile: 'Upload File',
+  address: 'Address',
+  capacity: 'Capacity',
 };

@@ -1,22 +1,23 @@
-import type { LoginResult } from '@/pages/login/model';
+import type { BaseFormData } from '#/form';
+import type { PageServerResult, PaginationData } from '#/public';
 import { request } from '@/utils/request';
 
 enum API {
-  URL = '/system/user',
+  URL = '/gym/coach',
 }
 
 /**
  * 获取分页数据
  * @param data - 请求数据
  */
-export function getUserPage(data: Partial<BaseFormData> & PaginationData) {
+export function getCoachPage(data: Partial<BaseFormData> & PaginationData) {
   return request.get<PageServerResult<BaseFormData[]>>(`${API.URL}/page`, { params: data });
 }
 
 /**
  * 获取全部列表（下拉选择用）
  */
-export function getUserList() {
+export function getCoachList() {
   return request.get<BaseFormData[]>(`${API.URL}/list`);
 }
 
@@ -24,7 +25,7 @@ export function getUserList() {
  * 根据ID获取数据
  * @param id - ID
  */
-export function getUserById(id: string) {
+export function getCoachById(id: string) {
   return request.get<BaseFormData>(`${API.URL}/detail?id=${id}`);
 }
 
@@ -32,7 +33,7 @@ export function getUserById(id: string) {
  * 新增数据
  * @param data - 请求数据
  */
-export function createUser(data: BaseFormData) {
+export function createCoach(data: BaseFormData) {
   return request.post(`${API.URL}/create`, data);
 }
 
@@ -41,7 +42,7 @@ export function createUser(data: BaseFormData) {
  * @param id - 修改id值
  * @param data - 请求数据
  */
-export function updateUser(id: string, data: BaseFormData) {
+export function updateCoach(id: string, data: BaseFormData) {
   return request.put(`${API.URL}/update/${id}`, data);
 }
 
@@ -49,22 +50,6 @@ export function updateUser(id: string, data: BaseFormData) {
  * 删除
  * @param id - 删除id值
  */
-export function deleteUser(id: string) {
+export function deleteCoach(id: string) {
   return request.delete(`${API.URL}/${id}`);
-}
-
-/**
- * 批量删除
- * @param data - 请求数据
- */
-export function batchDeleteUser(data: BaseFormData) {
-  return request.post(`${API.URL}/batchDelete`, data);
-}
-
-/**
- * 获取用户刷新权限
- * @param data - 请求数据
- */
-export function getUserRefreshPermissions(data: object) {
-  return request.get<LoginResult>(`${API.URL}/refreshPermissions`, { params: data });
 }

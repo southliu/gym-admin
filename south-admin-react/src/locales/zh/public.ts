@@ -81,4 +81,6 @@ export default {
   noLoginVisit: '未登录无法访问',
   loading: '加载中',
   uploadFile: '上传文件',
+  address: '地址',
+  capacity: '容量',
 };
