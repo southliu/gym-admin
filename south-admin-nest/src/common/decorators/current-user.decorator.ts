@@ -7,6 +7,7 @@ export interface UserInfo {
   email?: string;
   phone?: string;
   roles: number[];
+  roleNames: string[];
   status: number;
 }
 

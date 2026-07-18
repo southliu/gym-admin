@@ -234,23 +234,24 @@ INSERT INTO sys_permission (name, description, create_at, update_at) VALUES
 -- ============================================
 -- 15. 插入课程管理目录菜单
 -- ============================================
+-- 课程管理目录菜单：router 指向真实页面 /gym/course，点击父级时跳转到该页面（避免 404）
 INSERT INTO sys_menu (label, label_en, type, icon, router, `order`, state, create_at, update_at, parent_id, is_deleted, permission_id)
-VALUES ('课程管理', 'Course Management', 1, 'mdi:dumbbell', '/gym', 5, 1, NOW(), NOW(), NULL, 0, (SELECT id FROM sys_permission WHERE name = '/gym/course'));
+VALUES ('课程管理', 'Course Management', 1, 'mdi:dumbbell', '/gym/course', 5, 1, NOW(), NOW(), NULL, 0, (SELECT id FROM sys_permission WHERE name = '/gym/course'));
 
 -- ============================================
 -- 16. 插入课程管理子菜单
 -- ============================================
 INSERT INTO sys_menu (label, label_en, type, icon, router, `order`, state, create_at, update_at, parent_id, is_deleted, permission_id)
-VALUES ('课程类型', 'Course Type', 2, NULL, '/gym/course-type', 0, 1, NOW(), NOW(), (SELECT id FROM (SELECT id FROM sys_menu WHERE router = '/gym') AS t), 0, NULL);
+VALUES ('课程类型', 'Course Type', 2, NULL, '/gym/course-type', 0, 1, NOW(), NOW(), (SELECT id FROM (SELECT id FROM sys_menu WHERE router = '/gym/course' AND type = 1) AS t), 0, NULL);
 
 INSERT INTO sys_menu (label, label_en, type, icon, router, `order`, state, create_at, update_at, parent_id, is_deleted, permission_id)
-VALUES ('课程地点', 'Course Location', 2, NULL, '/gym/course-location', 1, 1, NOW(), NOW(), (SELECT id FROM (SELECT id FROM sys_menu WHERE router = '/gym') AS t), 0, NULL);
+VALUES ('课程地点', 'Course Location', 2, NULL, '/gym/location', 1, 1, NOW(), NOW(), (SELECT id FROM (SELECT id FROM sys_menu WHERE router = '/gym/course' AND type = 1) AS t), 0, NULL);
 
 INSERT INTO sys_menu (label, label_en, type, icon, router, `order`, state, create_at, update_at, parent_id, is_deleted, permission_id)
-VALUES ('课程管理', 'Course', 2, NULL, '/gym/course', 2, 1, NOW(), NOW(), (SELECT id FROM (SELECT id FROM sys_menu WHERE router = '/gym') AS t), 0, NULL);
+VALUES ('课程管理', 'Course', 2, NULL, '/gym/course', 2, 1, NOW(), NOW(), (SELECT id FROM (SELECT id FROM sys_menu WHERE router = '/gym/course' AND type = 1) AS t), 0, NULL);
 
 INSERT INTO sys_menu (label, label_en, type, icon, router, `order`, state, create_at, update_at, parent_id, is_deleted, permission_id)
-VALUES ('预约管理', 'Booking', 2, NULL, '/gym/booking', 3, 1, NOW(), NOW(), (SELECT id FROM (SELECT id FROM sys_menu WHERE router = '/gym') AS t), 0, NULL);
+VALUES ('预约管理', 'Booking', 2, NULL, '/gym/booking', 3, 1, NOW(), NOW(), (SELECT id FROM (SELECT id FROM sys_menu WHERE router = '/gym/course' AND type = 1) AS t), 0, NULL);
 
 -- ============================================
 -- 17. 插入课程类型按钮菜单
@@ -271,31 +272,31 @@ VALUES ('删除课程类型', 'Delete', 3, NULL, NULL, 3, 1, NOW(), NOW(), (SELE
 -- 18. 插入课程地点按钮菜单
 -- ============================================
 INSERT INTO sys_menu (label, label_en, type, icon, router, `order`, state, create_at, update_at, parent_id, is_deleted, permission_id)
-VALUES ('查看课程地点', 'View', 3, NULL, NULL, 0, 1, NOW(), NOW(), (SELECT id FROM (SELECT id FROM sys_menu WHERE router = '/gym/course-location') AS t), 0, (SELECT id FROM sys_permission WHERE name = '/gym/course-location/view'));
+VALUES ('查看课程地点', 'View', 3, NULL, NULL, 0, 1, NOW(), NOW(), (SELECT id FROM (SELECT id FROM sys_menu WHERE router = '/gym/location') AS t), 0, (SELECT id FROM sys_permission WHERE name = '/gym/course-location/view'));
 
 INSERT INTO sys_menu (label, label_en, type, icon, router, `order`, state, create_at, update_at, parent_id, is_deleted, permission_id)
-VALUES ('创建课程地点', 'Create', 3, NULL, NULL, 1, 1, NOW(), NOW(), (SELECT id FROM (SELECT id FROM sys_menu WHERE router = '/gym/course-location') AS t), 0, (SELECT id FROM sys_permission WHERE name = '/gym/course-location/create'));
+VALUES ('创建课程地点', 'Create', 3, NULL, NULL, 1, 1, NOW(), NOW(), (SELECT id FROM (SELECT id FROM sys_menu WHERE router = '/gym/location') AS t), 0, (SELECT id FROM sys_permission WHERE name = '/gym/course-location/create'));
 
 INSERT INTO sys_menu (label, label_en, type, icon, router, `order`, state, create_at, update_at, parent_id, is_deleted, permission_id)
-VALUES ('修改课程地点', 'Update', 3, NULL, NULL, 2, 1, NOW(), NOW(), (SELECT id FROM (SELECT id FROM sys_menu WHERE router = '/gym/course-location') AS t), 0, (SELECT id FROM sys_permission WHERE name = '/gym/course-location/update'));
+VALUES ('修改课程地点', 'Update', 3, NULL, NULL, 2, 1, NOW(), NOW(), (SELECT id FROM (SELECT id FROM sys_menu WHERE router = '/gym/location') AS t), 0, (SELECT id FROM sys_permission WHERE name = '/gym/course-location/update'));
 
 INSERT INTO sys_menu (label, label_en, type, icon, router, `order`, state, create_at, update_at, parent_id, is_deleted, permission_id)
-VALUES ('删除课程地点', 'Delete', 3, NULL, NULL, 3, 1, NOW(), NOW(), (SELECT id FROM (SELECT id FROM sys_menu WHERE router = '/gym/course-location') AS t), 0, (SELECT id FROM sys_permission WHERE name = '/gym/course-location/delete'));
+VALUES ('删除课程地点', 'Delete', 3, NULL, NULL, 3, 1, NOW(), NOW(), (SELECT id FROM (SELECT id FROM sys_menu WHERE router = '/gym/location') AS t), 0, (SELECT id FROM sys_permission WHERE name = '/gym/course-location/delete'));
 
 -- ============================================
 -- 19. 插入课程管理按钮菜单
 -- ============================================
 INSERT INTO sys_menu (label, label_en, type, icon, router, `order`, state, create_at, update_at, parent_id, is_deleted, permission_id)
-VALUES ('查看课程', 'View', 3, NULL, NULL, 0, 1, NOW(), NOW(), (SELECT id FROM (SELECT id FROM sys_menu WHERE router = '/gym/course') AS t), 0, (SELECT id FROM sys_permission WHERE name = '/gym/course/view'));
+VALUES ('查看课程', 'View', 3, NULL, NULL, 0, 1, NOW(), NOW(), (SELECT id FROM (SELECT id FROM sys_menu WHERE router = '/gym/course' AND type = 2) AS t), 0, (SELECT id FROM sys_permission WHERE name = '/gym/course/view'));
 
 INSERT INTO sys_menu (label, label_en, type, icon, router, `order`, state, create_at, update_at, parent_id, is_deleted, permission_id)
-VALUES ('创建课程', 'Create', 3, NULL, NULL, 1, 1, NOW(), NOW(), (SELECT id FROM (SELECT id FROM sys_menu WHERE router = '/gym/course') AS t), 0, (SELECT id FROM sys_permission WHERE name = '/gym/course/create'));
+VALUES ('创建课程', 'Create', 3, NULL, NULL, 1, 1, NOW(), NOW(), (SELECT id FROM (SELECT id FROM sys_menu WHERE router = '/gym/course' AND type = 2) AS t), 0, (SELECT id FROM sys_permission WHERE name = '/gym/course/create'));
 
 INSERT INTO sys_menu (label, label_en, type, icon, router, `order`, state, create_at, update_at, parent_id, is_deleted, permission_id)
-VALUES ('修改课程', 'Update', 3, NULL, NULL, 2, 1, NOW(), NOW(), (SELECT id FROM (SELECT id FROM sys_menu WHERE router = '/gym/course') AS t), 0, (SELECT id FROM sys_permission WHERE name = '/gym/course/update'));
+VALUES ('修改课程', 'Update', 3, NULL, NULL, 2, 1, NOW(), NOW(), (SELECT id FROM (SELECT id FROM sys_menu WHERE router = '/gym/course' AND type = 2) AS t), 0, (SELECT id FROM sys_permission WHERE name = '/gym/course/update'));
 
 INSERT INTO sys_menu (label, label_en, type, icon, router, `order`, state, create_at, update_at, parent_id, is_deleted, permission_id)
-VALUES ('删除课程', 'Delete', 3, NULL, NULL, 3, 1, NOW(), NOW(), (SELECT id FROM (SELECT id FROM sys_menu WHERE router = '/gym/course') AS t), 0, (SELECT id FROM sys_permission WHERE name = '/gym/course/delete'));
+VALUES ('删除课程', 'Delete', 3, NULL, NULL, 3, 1, NOW(), NOW(), (SELECT id FROM (SELECT id FROM sys_menu WHERE router = '/gym/course' AND type = 2) AS t), 0, (SELECT id FROM sys_permission WHERE name = '/gym/course/delete'));
 
 -- ============================================
 -- 20. 插入预约管理按钮菜单
@@ -342,16 +343,16 @@ INSERT INTO sys_permission (name, description, create_at, update_at) VALUES
 -- 22. 插入教练管理子菜单
 -- ============================================
 INSERT INTO sys_menu (label, label_en, type, icon, router, `order`, state, create_at, update_at, parent_id, is_deleted, permission_id)
-VALUES ('教练管理', 'Coach Management', 2, NULL, '/gym/coach', 4, 1, NOW(), NOW(), (SELECT id FROM (SELECT id FROM sys_menu WHERE router = '/gym' AND type = 1) AS t), 0, NULL);
+VALUES ('教练管理', 'Coach Management', 2, NULL, '/gym/coach', 4, 1, NOW(), NOW(), (SELECT id FROM (SELECT id FROM sys_menu WHERE router = '/gym/course' AND type = 1) AS t), 0, NULL);
 
 INSERT INTO sys_menu (label, label_en, type, icon, router, `order`, state, create_at, update_at, parent_id, is_deleted, permission_id)
-VALUES ('教练课程', 'Coach Course', 2, NULL, '/gym/coach-course', 5, 1, NOW(), NOW(), (SELECT id FROM (SELECT id FROM sys_menu WHERE router = '/gym' AND type = 1) AS t), 0, NULL);
+VALUES ('教练课程', 'Coach Course', 2, NULL, '/gym/coach-course', 5, 1, NOW(), NOW(), (SELECT id FROM (SELECT id FROM sys_menu WHERE router = '/gym/course' AND type = 1) AS t), 0, NULL);
 
 INSERT INTO sys_menu (label, label_en, type, icon, router, `order`, state, create_at, update_at, parent_id, is_deleted, permission_id)
-VALUES ('排班模板', 'Schedule Template', 2, NULL, '/gym/coach-schedule-template', 6, 1, NOW(), NOW(), (SELECT id FROM (SELECT id FROM sys_menu WHERE router = '/gym' AND type = 1) AS t), 0, NULL);
+VALUES ('排班模板', 'Schedule Template', 2, NULL, '/gym/coach-schedule-template', 6, 1, NOW(), NOW(), (SELECT id FROM (SELECT id FROM sys_menu WHERE router = '/gym/course' AND type = 1) AS t), 0, NULL);
 
 INSERT INTO sys_menu (label, label_en, type, icon, router, `order`, state, create_at, update_at, parent_id, is_deleted, permission_id)
-VALUES ('排班覆盖', 'Schedule Override', 2, NULL, '/gym/coach-schedule-override', 7, 1, NOW(), NOW(), (SELECT id FROM (SELECT id FROM sys_menu WHERE router = '/gym' AND type = 1) AS t), 0, NULL);
+VALUES ('排班覆盖', 'Schedule Override', 2, NULL, '/gym/coach-schedule-override', 7, 1, NOW(), NOW(), (SELECT id FROM (SELECT id FROM sys_menu WHERE router = '/gym/course' AND type = 1) AS t), 0, NULL);
 
 -- ============================================
 -- 23. 插入教练管理按钮菜单

@@ -65,6 +65,7 @@ export class CoachService {
       qualifications: dto.qualifications,
       avatar: dto.avatar,
       status: dto.status ?? 1,
+      userId: dto.userId ?? null,
     });
     return await this.coachRepository.save(coach);
   }
@@ -81,6 +82,7 @@ export class CoachService {
     if (dto.qualifications !== undefined) coach.qualifications = dto.qualifications;
     if (dto.avatar !== undefined) coach.avatar = dto.avatar;
     if (dto.status !== undefined) coach.status = dto.status;
+    if (dto.userId !== undefined) coach.userId = dto.userId;
     return await this.coachRepository.save(coach);
   }
 

@@ -8,6 +8,7 @@ import { CoachScheduleTemplateModule } from './coach-schedule-template/coach-sch
 import { CoachScheduleOverrideModule } from './coach-schedule-override/coach-schedule-override.module';
 import { CoachCourseModule } from './coach-course/coach-course.module';
 import { CoachModule } from './coach/coach.module';
+import { PortalModule } from './portal/portal.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { CoachModule } from './coach/coach.module';
     CoachScheduleTemplateModule,
     CoachScheduleOverrideModule,
     CoachCourseModule,
+    PortalModule,
   ],
   exports: [
     CourseTypeModule,

@@ -30,6 +30,11 @@ export class CreateCoachDto {
   @Type(() => Number)
   @IsInt()
   status?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  userId?: number;
 }
 
 export class UpdateCoachDto {
@@ -62,4 +67,9 @@ export class UpdateCoachDto {
   @Type(() => Number)
   @IsInt()
   status?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  userId?: number;
 }

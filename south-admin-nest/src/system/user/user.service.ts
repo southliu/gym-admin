@@ -63,6 +63,7 @@ export class UserService {
       phone: user.phone,
       status: user.status,
       roles: user.roles?.map((item) => item.id),
+      roleNames: user.roles?.map((item) => item.name) ?? [],
     };
 
     const token = await this.jwtService.signAsync(payload);
@@ -79,6 +80,7 @@ export class UserService {
           phone: user.phone,
         },
         roles: user.roles?.map((role) => String(role.id)) || [],
+        roleNames: user.roles?.map((role) => role.name) || [],
         permissions,
       },
       '登录成功',

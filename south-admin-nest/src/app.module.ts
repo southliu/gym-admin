@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CommonModule } from './common/common.module';
+import { SeedModule } from './common/seed/seed.module';
 import { SystemModule } from './system/system.module';
 import { ContentsModule } from './contents/contents.module';
 import { DashboardModule } from './dashboard/dashboard.module';
@@ -58,6 +59,7 @@ import { LogService } from './log/log.service';
     DashboardModule,
     LogModule,
     GymModule,
+    SeedModule,
   ],
   controllers: [AppController],
   providers: [
