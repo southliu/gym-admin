@@ -1,7 +1,9 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { CoachCourse } from '../entities/coach-course.entity';
+import { Coach } from '../entities/coach.entity';
+import { Course } from '../entities/course.entity';
 import { CreateCoachCourseDto } from '../dto/coach-course.dto';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 
@@ -10,6 +12,10 @@ export class CoachCourseService {
   constructor(
     @InjectRepository(CoachCourse)
     private coachCourseRepository: Repository<CoachCourse>,
+    @InjectRepository(Coach)
+    private coachRepository: Repository<Coach>,
+    @InjectRepository(Course)
+    private courseRepository: Repository<Course>,
   ) {}
 
   async page(dto: PaginationDto & { coachId?: number; courseId?: number }) {
@@ -33,7 +39,26 @@ export class CoachCourseService {
       .orderBy('cc.createdAt', 'DESC')
       .getManyAndCount();
 
-    return { items, page, pageSize, total, totalPages: Math.ceil(total / pageSize) };
+    const coachIds = [...new Set(items.map((i) => i.coachId).filter(Boolean))];
+    const courseIds = [...new Set(items.map((i) => i.courseId).filter(Boolean))];
+    const coachMap = new Map(
+      coachIds.length
+        ? (await this.coachRepository.find({ where: { id: In(coachIds) } })).map((c) => [c.id, c.name])
+        : [],
+    );
+    const courseMap = new Map(
+      courseIds.length
+        ? (await this.courseRepository.find({ where: { id: In(courseIds) } })).map((c) => [c.id, c.name])
+        : [],
+    );
+
+    const enriched = items.map((i) => ({
+      ...i,
+      coachName: i.coachId ? coachMap.get(i.coachId) ?? null : null,
+      courseName: i.courseId ? courseMap.get(i.courseId) ?? null : null,
+    }));
+
+    return { items: enriched, page, pageSize, total, totalPages: Math.ceil(total / pageSize) };
   }
 
   async create(dto: CreateCoachCourseDto) {

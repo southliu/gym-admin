@@ -6,6 +6,7 @@ import { CourseSession } from '../entities/course-session.entity';
 import { Booking } from '../entities/booking.entity';
 import { CourseType } from '../entities/course-type.entity';
 import { Location } from '../entities/location.entity';
+import { Coach } from '../entities/coach.entity';
 import { CreateCourseDto, UpdateCourseDto } from '../dto/course.dto';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 
@@ -18,6 +19,12 @@ export class CourseService {
     private sessionRepository: Repository<CourseSession>,
     @InjectRepository(Booking)
     private bookingRepository: Repository<Booking>,
+    @InjectRepository(CourseType)
+    private courseTypeRepository: Repository<CourseType>,
+    @InjectRepository(Location)
+    private locationRepository: Repository<Location>,
+    @InjectRepository(Coach)
+    private coachRepository: Repository<Coach>,
   ) {}
 
   async page(dto: PaginationDto & { name?: string; typeId?: number; status?: number }) {
@@ -26,8 +33,6 @@ export class CourseService {
 
     const queryBuilder = this.courseRepository
       .createQueryBuilder('course')
-      .leftJoinAndSelect(CourseType, 'ct', 'ct.id = course.typeId AND ct.isDeleted = 0')
-      .leftJoinAndSelect(Location, 'cl', 'cl.id = course.locationId AND cl.isDeleted = 0')
       .where('course.isDeleted = :isDeleted', { isDeleted: 0 });
 
     if (name) {
@@ -46,7 +51,76 @@ export class CourseService {
       .orderBy('course.createdAt', 'DESC')
       .getManyAndCount();
 
-    return { items, page, pageSize, total, totalPages: Math.ceil(total / pageSize) };
+    // 附带课程类型 / 场地 / 教练名称，便于后台展示
+    const typeIds = [...new Set(items.map((c) => c.typeId).filter(Boolean))];
+    const locationIds = [...new Set(items.map((c) => c.locationId).filter(Boolean))];
+    const coachIds = [...new Set(items.map((c) => c.coachId).filter(Boolean))];
+    const courseIds = items.map((c) => c.id);
+    const typeMap = new Map(
+      typeIds.length
+        ? (await this.courseTypeRepository.find({ where: { id: In(typeIds) } })).map((t) => [t.id, t.name])
+        : [],
+    );
+    const locationMap = new Map(
+      locationIds.length
+        ? (await this.locationRepository.find({ where: { id: In(locationIds) } })).map((l) => [l.id, l.name])
+        : [],
+    );
+    const coachMap = new Map(
+      coachIds.length
+        ? (await this.coachRepository.find({ where: { id: In(coachIds) } })).map((c) => [c.id, c.name])
+        : [],
+    );
+
+    // 取每个课程最早一节有效课次作为展示用的日期/时段，并统计总已约数
+    const firstSessions = courseIds.length
+      ? await this.sessionRepository
+          .createQueryBuilder('s')
+          .where('s.isDeleted = :isDeleted', { isDeleted: 0 })
+          .andWhere('s.courseId IN (:...courseIds)', { courseIds })
+          .orderBy('s.sessionDate', 'ASC')
+          .addOrderBy('s.startTime', 'ASC')
+          .getMany()
+      : [];
+    const firstSessionByCourse = new Map<number, CourseSession>();
+    for (const s of firstSessions) {
+      if (!firstSessionByCourse.has(s.courseId)) firstSessionByCourse.set(s.courseId, s);
+    }
+    const bookedByCourse = new Map<number, number>();
+    if (firstSessions.length) {
+      const sessionIds = firstSessions.map((s) => s.id);
+      const rows = await this.bookingRepository
+        .createQueryBuilder('b')
+        .select('b.sessionId', 'sessionId')
+        .addSelect('SUM(CASE WHEN b.status = 1 THEN 1 ELSE 0 END)', 'cnt')
+        .where('b.isDeleted = :isDeleted', { isDeleted: 0 })
+        .andWhere('b.sessionId IN (:...sessionIds)', { sessionIds })
+        .groupBy('b.sessionId')
+        .getRawMany();
+      const cntBySession = new Map(rows.map((r) => [Number(r.sessionId), Number(r.cnt)]));
+      for (const s of firstSessions) {
+        bookedByCourse.set(
+          s.courseId,
+          (bookedByCourse.get(s.courseId) ?? 0) + (cntBySession.get(s.id) ?? 0),
+        );
+      }
+    }
+
+    const enriched = items.map((c) => {
+      const first = firstSessionByCourse.get(c.id);
+      return {
+        ...c,
+        courseTypeName: c.typeId ? typeMap.get(c.typeId) ?? null : null,
+        locationName: c.locationId ? locationMap.get(c.locationId) ?? null : null,
+        coachName: c.coachId ? coachMap.get(c.coachId) ?? null : null,
+        startDate: first ? formatDate(first.sessionDate) : c.startDate ? formatDate(c.startDate) : null,
+        startTime: first?.startTime ?? null,
+        endTime: first?.endTime ?? null,
+        bookedCount: bookedByCourse.get(c.id) ?? 0,
+      };
+    });
+
+    return { items: enriched, page, pageSize, total, totalPages: Math.ceil(total / pageSize) };
   }
 
   async detail(id: number) {
@@ -241,4 +315,13 @@ export class CourseService {
 
     await this.sessionRepository.save(sessions);
   }
+}
+
+function formatDate(d: Date): string {
+  if (!d) return '';
+  const dt = new Date(d);
+  const y = dt.getFullYear();
+  const m = String(dt.getMonth() + 1).padStart(2, '0');
+  const day = String(dt.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }

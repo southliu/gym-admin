@@ -3,9 +3,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CoachScheduleOverrideController } from './coach-schedule-override.controller';
 import { CoachScheduleOverrideService } from './coach-schedule-override.service';
 import { CoachScheduleOverride } from '../entities/coach-schedule-override.entity';
+import { Coach } from '../entities/coach.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([CoachScheduleOverride])],
+  imports: [TypeOrmModule.forFeature([CoachScheduleOverride, Coach])],
   controllers: [CoachScheduleOverrideController],
   providers: [CoachScheduleOverrideService],
   exports: [CoachScheduleOverrideService],

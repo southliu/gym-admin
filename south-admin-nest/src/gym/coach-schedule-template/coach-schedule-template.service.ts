@@ -1,8 +1,9 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { CoachScheduleTemplate } from '../entities/coach-schedule-template.entity';
 import { CoachScheduleOverride } from '../entities/coach-schedule-override.entity';
+import { Coach } from '../entities/coach.entity';
 import {
   CreateCoachScheduleTemplateDto,
   UpdateCoachScheduleTemplateDto,
@@ -17,6 +18,8 @@ export class CoachScheduleTemplateService {
     private templateRepository: Repository<CoachScheduleTemplate>,
     @InjectRepository(CoachScheduleOverride)
     private overrideRepository: Repository<CoachScheduleOverride>,
+    @InjectRepository(Coach)
+    private coachRepository: Repository<Coach>,
   ) {}
 
   async page(dto: PaginationDto & { coachId?: number; dayOfWeek?: number }) {
@@ -41,7 +44,19 @@ export class CoachScheduleTemplateService {
       .addOrderBy('template.startTime', 'ASC')
       .getManyAndCount();
 
-    return { items, page, pageSize, total, totalPages: Math.ceil(total / pageSize) };
+    const coachIds = [...new Set(items.map((i) => i.coachId).filter(Boolean))];
+    const coachMap = new Map(
+      coachIds.length
+        ? (await this.coachRepository.find({ where: { id: In(coachIds) } })).map((c) => [c.id, c.name])
+        : [],
+    );
+
+    const enriched = items.map((i) => ({
+      ...i,
+      coachName: i.coachId ? coachMap.get(i.coachId) ?? null : null,
+    }));
+
+    return { items: enriched, page, pageSize, total, totalPages: Math.ceil(total / pageSize) };
   }
 
   async create(dto: CreateCoachScheduleTemplateDto) {

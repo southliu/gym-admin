@@ -4,9 +4,10 @@ import { CoachScheduleTemplateController } from './coach-schedule-template.contr
 import { CoachScheduleTemplateService } from './coach-schedule-template.service';
 import { CoachScheduleTemplate } from '../entities/coach-schedule-template.entity';
 import { CoachScheduleOverride } from '../entities/coach-schedule-override.entity';
+import { Coach } from '../entities/coach.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([CoachScheduleTemplate, CoachScheduleOverride])],
+  imports: [TypeOrmModule.forFeature([CoachScheduleTemplate, CoachScheduleOverride, Coach])],
   controllers: [CoachScheduleTemplateController],
   providers: [CoachScheduleTemplateService],
   exports: [CoachScheduleTemplateService],

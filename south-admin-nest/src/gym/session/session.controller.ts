@@ -11,6 +11,11 @@ export class SessionController {
     return await this.sessionService.page(dto);
   }
 
+  @Get('list')
+  async list(@Query() dto: any) {
+    return await this.sessionService.list(dto);
+  }
+
   @Get('detail')
   async detail(@Query('id') id: number) {
     return await this.sessionService.detail(id);

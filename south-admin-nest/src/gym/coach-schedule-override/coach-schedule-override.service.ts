@@ -1,7 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { CoachScheduleOverride } from '../entities/coach-schedule-override.entity';
+import { Coach } from '../entities/coach.entity';
 import {
   CreateCoachScheduleOverrideDto,
   UpdateCoachScheduleOverrideDto,
@@ -13,6 +14,8 @@ export class CoachScheduleOverrideService {
   constructor(
     @InjectRepository(CoachScheduleOverride)
     private overrideRepository: Repository<CoachScheduleOverride>,
+    @InjectRepository(Coach)
+    private coachRepository: Repository<Coach>,
   ) {}
 
   async page(
@@ -41,7 +44,20 @@ export class CoachScheduleOverrideService {
       .orderBy('override.overrideDate', 'DESC')
       .getManyAndCount();
 
-    return { items, page, pageSize, total, totalPages: Math.ceil(total / pageSize) };
+    const coachIds = [...new Set(items.map((i) => i.coachId).filter(Boolean))];
+    const coachMap = new Map(
+      coachIds.length
+        ? (await this.coachRepository.find({ where: { id: In(coachIds) } })).map((c) => [c.id, c.name])
+        : [],
+    );
+
+    const enriched = items.map((i) => ({
+      ...i,
+      coachName: i.coachId ? coachMap.get(i.coachId) ?? null : null,
+      date: i.overrideDate ? formatDate(i.overrideDate) : null,
+    }));
+
+    return { items: enriched, page, pageSize, total, totalPages: Math.ceil(total / pageSize) };
   }
 
   async create(dto: CreateCoachScheduleOverrideDto) {
@@ -78,4 +94,13 @@ export class CoachScheduleOverrideService {
     override.deletedAt = new Date();
     await this.overrideRepository.save(override);
   }
+}
+
+function formatDate(d: Date): string {
+  if (!d) return '';
+  const dt = new Date(d);
+  const y = dt.getFullYear();
+  const m = String(dt.getMonth() + 1).padStart(2, '0');
+  const day = String(dt.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }

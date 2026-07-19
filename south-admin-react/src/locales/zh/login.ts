@@ -1,6 +1,6 @@
 export default {
   login: '登录',
-  systemLogin: '系统登录',
+  systemLogin: '健身房系统登录',
   oldPassword: '旧密码',
   newPassword: '新密码',
   password: '密码',

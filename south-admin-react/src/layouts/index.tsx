@@ -201,15 +201,7 @@ function Layout() {
                 transition={{ duration: 0.3, ease: 'easeOut' }}
               >
                 <ErrorBoundary>
-                  <Suspense
-                    fallback={
-                      <div className="p-30px">
-                        <Skeleton active paragraph={{ rows: 10 }} />
-                      </div>
-                    }
-                  >
-                    {outlet}
-                  </Suspense>
+                  {outlet}
                 </ErrorBoundary>
               </motion.div>
             )}

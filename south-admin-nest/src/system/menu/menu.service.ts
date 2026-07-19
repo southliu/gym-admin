@@ -199,6 +199,7 @@ export class MenuService {
       state,
       parentId,
       actions,
+      rule,
     } = createMenuDto;
 
     const parent = parentId
@@ -236,10 +237,20 @@ export class MenuService {
       }
     }
 
-    // 关联权限
-    if (permissionId) {
+    // 关联权限：优先用 permissionId，其次用 rule（权限名）
+    let resolvedPermissionId = permissionId;
+    if (!resolvedPermissionId && rule) {
+      const permByRule = await this.permissionRepository.findOne({
+        where: { name: rule },
+      });
+      if (permByRule) {
+        resolvedPermissionId = permByRule.id;
+      }
+    }
+
+    if (resolvedPermissionId) {
       const permission = await this.permissionRepository.findOne({
-        where: { id: permissionId },
+        where: { id: resolvedPermissionId },
       });
       if (permission) {
         savedMenu.permission = permission;
@@ -385,7 +396,7 @@ export class MenuService {
       throw new NotFoundException('菜单不存在');
     }
 
-    const { label, labelEn, type, icon, router, permissionId, order, state, parentId } =
+    const { label, labelEn, type, icon, router, permissionId, order, state, parentId, rule } =
       updateMenuDto;
 
     if (parentId !== undefined) {
@@ -414,10 +425,21 @@ export class MenuService {
     menu.order = order !== undefined ? order : menu.order;
     menu.state = state !== undefined ? state : menu.state;
 
-    if (permissionId !== undefined) {
-      if (permissionId) {
+    // 优先用 permissionId，其次用 rule（权限名）查找
+    let resolvedPermissionId = permissionId;
+    if (resolvedPermissionId === undefined && rule) {
+      const permByRule = await this.permissionRepository.findOne({
+        where: { name: rule },
+      });
+      if (permByRule) {
+        resolvedPermissionId = permByRule.id;
+      }
+    }
+
+    if (resolvedPermissionId !== undefined) {
+      if (resolvedPermissionId) {
         const permission = await this.permissionRepository.findOne({
-          where: { id: permissionId },
+          where: { id: resolvedPermissionId },
         });
         if (permission) {
           menu.permission = permission;

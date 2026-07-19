@@ -5,9 +5,11 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource, In } from 'typeorm';
 import { Booking } from '../entities/booking.entity';
 import { CourseSession } from '../entities/course-session.entity';
+import { Course } from '../entities/course.entity';
+import { User } from '../../system/entities/user.entity';
 import { CreateBookingDto } from '../dto/booking.dto';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 
@@ -18,6 +20,10 @@ export class BookingService {
     private bookingRepository: Repository<Booking>,
     @InjectRepository(CourseSession)
     private sessionRepository: Repository<CourseSession>,
+    @InjectRepository(Course)
+    private courseRepository: Repository<Course>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
     private dataSource: DataSource,
   ) {}
 
@@ -47,7 +53,44 @@ export class BookingService {
       .orderBy('booking.createdAt', 'DESC')
       .getManyAndCount();
 
-    return { items, page, pageSize, total, totalPages: Math.ceil(total / pageSize) };
+    // 附带用户名 / 课程名 / 课次信息，便于后台展示
+    const sessionIds = [...new Set(items.map((b) => b.sessionId))];
+    const userIds = [...new Set(items.map((b) => b.userId))];
+    let sessionMap = new Map<number, CourseSession>();
+    let courseMap = new Map<number, Course>();
+    if (sessionIds.length) {
+      const sessions = await this.sessionRepository.find({
+        where: { id: In(sessionIds), isDeleted: 0 },
+      });
+      sessionMap = new Map(sessions.map((s) => [s.id, s]));
+      const courseIds = [...new Set(sessions.map((s) => s.courseId))];
+      if (courseIds.length) {
+        const courses = await this.courseRepository.find({
+          where: { id: In(courseIds), isDeleted: 0 },
+        });
+        courseMap = new Map(courses.map((c) => [c.id, c]));
+      }
+    }
+    const userMap = new Map(
+      userIds.length
+        ? (await this.userRepository.find({ where: { id: In(userIds) } })).map((u) => [u.id, u.name])
+        : [],
+    );
+
+    const enriched = items.map((b) => {
+      const session = sessionMap.get(b.sessionId);
+      const course = session ? courseMap.get(session.courseId) : undefined;
+      return {
+        ...b,
+        userName: userMap.get(b.userId) ?? null,
+        courseName: course?.name ?? null,
+        sessionName: session
+          ? `${formatDate(session.sessionDate)} ${session.startTime}-${session.endTime}`
+          : null,
+      };
+    });
+
+    return { items: enriched, page, pageSize, total, totalPages: Math.ceil(total / pageSize) };
   }
 
   async create(dto: CreateBookingDto) {
@@ -144,4 +187,13 @@ export class BookingService {
     booking.deletedAt = new Date();
     await this.bookingRepository.save(booking);
   }
+}
+
+function formatDate(d: Date): string {
+  if (!d) return '';
+  const dt = new Date(d);
+  const y = dt.getFullYear();
+  const m = String(dt.getMonth() + 1).padStart(2, '0');
+  const day = String(dt.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }

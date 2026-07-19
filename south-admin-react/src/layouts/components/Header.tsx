@@ -16,7 +16,6 @@ import Avatar from '@/assets/images/avatar.png';
 import styles from '../index.module.less';
 import Fullscreen from '@/components/Fullscreen';
 import GlobalSearch from '@/components/GlobalSearch';
-import Github from '@/components/Github';
 import I18n from '@/components/I18n';
 import Theme from '@/components/Theme';
 import UpdatePassword from './UpdatePassword';
@@ -80,7 +79,6 @@ function Header() {
     return useMemo(
       () => (
         <div className="flex items-center">
-          <Github />
           <GlobalSearch />
           <Fullscreen />
           <I18n />

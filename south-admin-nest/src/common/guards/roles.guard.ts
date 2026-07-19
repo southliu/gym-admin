@@ -33,6 +33,11 @@ export class RolesGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const user = request.user;
 
+    // 超级管理员放行所有 @Roles 接口，保证最高权限账号可访问任意页面
+    if (isSuperAdmin(user)) {
+      return true;
+    }
+
     const userRoleNames: string[] = Array.isArray(user?.roleNames)
       ? user.roleNames
       : Array.isArray(user?.roles)
@@ -53,4 +58,21 @@ export class RolesGuard implements CanActivate {
 
     return true;
   }
+}
+
+/**
+ * 判断是否为超级管理员：
+ *   1) 用户名为 'admin'（与 init.sql / seed 约定一致），或
+ *   2) 角色名含超级管理员标识（'系统管理员' / 'admin'）。
+ * 超级管理员可访问所有 @Roles 受保护接口。
+ */
+function isSuperAdmin(user: any): boolean {
+  if (!user) return false;
+  if (user.username === 'admin') return true;
+  const names: string[] = Array.isArray(user?.roleNames)
+    ? user.roleNames
+    : Array.isArray(user?.roles)
+      ? user.roles
+      : [];
+  return names.some((n) => n === '系统管理员' || n === 'admin');
 }
