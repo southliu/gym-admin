@@ -59,19 +59,39 @@ export class CoachScheduleTemplateService {
     return { items: enriched, page, pageSize, total, totalPages: Math.ceil(total / pageSize) };
   }
 
-  async create(dto: CreateCoachScheduleTemplateDto) {
-    // Check for duplicate template on same coach + day
-    const existing = await this.templateRepository.findOne({
-      where: {
-        coachId: dto.coachId,
-        dayOfWeek: dto.dayOfWeek,
-        isDeleted: 0,
-      },
-    });
+  /**
+   * 检查时间段是否与已有模板冲突
+   * 时间重叠条件：newStart < existEnd && newEnd > existStart
+   */
+  private async checkTimeOverlap(
+    coachId: number,
+    dayOfWeek: number,
+    startTime: string,
+    endTime: string,
+    excludeId?: number,
+  ) {
+    const query = this.templateRepository
+      .createQueryBuilder('template')
+      .where('template.coachId = :coachId', { coachId })
+      .andWhere('template.dayOfWeek = :dayOfWeek', { dayOfWeek })
+      .andWhere('template.isDeleted = :isDeleted', { isDeleted: 0 })
+      .andWhere('template.startTime < :endTime', { endTime })
+      .andWhere('template.endTime > :startTime', { startTime });
 
-    if (existing) {
-      throw new BadRequestException('该时段已有排班模板');
+    if (excludeId) {
+      query.andWhere('template.id != :excludeId', { excludeId });
     }
+
+    const conflict = await query.getOne();
+    if (conflict) {
+      throw new BadRequestException(
+        `该时段与已有排班（${conflict.startTime} - ${conflict.endTime}）存在冲突`,
+      );
+    }
+  }
+
+  async create(dto: CreateCoachScheduleTemplateDto) {
+    await this.checkTimeOverlap(dto.coachId, dto.dayOfWeek, dto.startTime, dto.endTime);
 
     const template = this.templateRepository.create({
       coachId: dto.coachId,
@@ -87,6 +107,14 @@ export class CoachScheduleTemplateService {
     if (!template || template.isDeleted === 1) {
       throw new NotFoundException('排班模板不存在');
     }
+
+    const coachId = template.coachId;
+    const dayOfWeek = dto.dayOfWeek ?? template.dayOfWeek;
+    const startTime = dto.startTime ?? template.startTime;
+    const endTime = dto.endTime ?? template.endTime;
+
+    await this.checkTimeOverlap(coachId, dayOfWeek, startTime, endTime, id);
+
     if (dto.dayOfWeek !== undefined) template.dayOfWeek = dto.dayOfWeek;
     if (dto.startTime !== undefined) template.startTime = dto.startTime;
     if (dto.endTime !== undefined) template.endTime = dto.endTime;

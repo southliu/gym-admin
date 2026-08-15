@@ -92,6 +92,23 @@ export class UpdatePasswordDto {
   confirmPassword: string;
 }
 
+export class RegisterDto {
+  @IsString()
+  username: string;
+
+  @IsString()
+  @MinLength(6)
+  password: string;
+
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  @IsOptional()
+  @IsString()
+  phone?: string;
+}
+
 export class PaginationDto {
   @IsOptional()
   @Type(() => Number)

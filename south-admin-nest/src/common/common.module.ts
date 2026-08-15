@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { RolesGuard } from './guards/roles.guard';
 import { ResponseInterceptor } from './interceptors/response.interceptor';
 import { JwtModule } from '@nestjs/jwt';
 
@@ -17,14 +16,11 @@ import { JwtModule } from '@nestjs/jwt';
       provide: APP_INTERCEPTOR,
       useClass: ResponseInterceptor,
     },
-    // 顺序：先 JwtAuthGuard（解析 token 并注入 request.user），再 RolesGuard（角色级校验）
+    // 仅保留 JwtAuthGuard（登录校验），移除 RolesGuard（角色级 API 权限校验）
+    // 页面/按钮/接口的权限判断已全部移除，仅保留菜单可见性过滤（前端 sidebar）
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
-    },
-    {
-      provide: APP_GUARD,
-      useClass: RolesGuard,
     },
   ],
   exports: [JwtModule],

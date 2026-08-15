@@ -71,7 +71,7 @@ export const tableColumns = (
     },
     {
       title: t('gym.specialty'),
-      dataIndex: 'specialty',
+      dataIndex: 'specialties',
       width: 150,
       ellipsis: true,
     },
@@ -180,7 +180,7 @@ export const createList = (t: TFunction): BaseFormList[] => [
   },
   {
     label: t('gym.specialty'),
-    name: 'specialty',
+    name: 'specialties',
     component: 'Input',
   },
   {

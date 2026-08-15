@@ -20,6 +20,7 @@ import {
   UpdateUserDto,
   UpdatePasswordDto,
   PaginationDto,
+  RegisterDto,
 } from '../dto/user.dto';
 
 @Controller('system/user')
@@ -30,6 +31,12 @@ export class UserController {
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
     return await this.userService.login(loginDto);
+  }
+
+  @Public()
+  @Post('register')
+  async register(@Body() registerDto: RegisterDto) {
+    return await this.userService.register(registerDto);
   }
 
   @Get('refreshPermissions')

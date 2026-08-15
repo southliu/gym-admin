@@ -24,3 +24,18 @@ export function updatePassword(data: object) {
 export function forgetPassword(data: object) {
   return request.post('/system/user/forgetPassword', data);
 }
+
+/**
+ * 注册
+ * @param data - 请求数据
+ */
+export function register(data: RegisterData) {
+  return request.post<LoginResult>('/system/user/register', data);
+}
+
+export interface RegisterData {
+  username: string;
+  password: string;
+  name?: string;
+  phone?: string;
+}

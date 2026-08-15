@@ -71,7 +71,7 @@ export const createList = (t: TFunction, id: string): BaseFormList[] => [
     component: 'customize',
     render: AuthorizeSelect as unknown as CustomizeRender,
     componentProps: {
-      id,
+      roleId: id,
     },
   },
 ];

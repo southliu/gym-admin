@@ -3,19 +3,6 @@ import { MENU_STATUS } from '@/utils/constants';
 import { getUserPage } from '@/servers/system/user';
 import { getRoleList } from '@/servers/system/role';
 
-const otherSearch: BaseSearchList[] = [];
-
-for (let i = 0; i < 32; i++) {
-  otherSearch.push({
-    label: `名称${i + 1}`,
-    name: `label${i + 1}`,
-    component: 'Input',
-    componentProps: {
-      maxLength: 200,
-    },
-  });
-}
-
 // 搜索数据
 export const searchList = (t: TFunction): BaseSearchList[] => [
   {
@@ -42,7 +29,6 @@ export const searchList = (t: TFunction): BaseSearchList[] => [
     name: 'phone',
     component: 'Input',
   },
-  ...otherSearch,
 ];
 
 /**

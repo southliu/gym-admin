@@ -3,7 +3,6 @@ import type { FormInstance } from 'antd';
 import { Form, message } from 'antd';
 import { useMemo, useCallback } from 'react';
 import { useEffectOnActive } from 'keepalive-for-react';
-import type { ApiFn } from '#/form';
 import { batchGenerateList, createList, searchList, tableColumns } from './model';
 import {
   batchGenerateCoachSchedule,
@@ -13,7 +12,6 @@ import {
   getCoachScheduleTemplatePage,
   updateCoachScheduleTemplate,
 } from '@/servers/gym/coach-schedule-template';
-import { getCourseList } from '@/servers/gym/course';
 
 // 当前行数据
 interface RowData {
@@ -276,12 +274,14 @@ function Page() {
   /** 左侧渲染 */
   const leftContentRender = (
     <div className="flex gap-10px">
-      <DeleteBtn
-        isIcon
-        isLoading={isLoading}
-        btnType="batchDelete"
-        handleDelete={handleBatchDelete}
-      />
+      {pagePermission.delete && (
+        <DeleteBtn
+          isIcon
+          isLoading={isLoading}
+          btnType="batchDelete"
+          handleDelete={handleBatchDelete}
+        />
+      )}
       {pagePermission.batchGenerate === true && (
         <BaseBtn
           type="primary"
@@ -339,7 +339,7 @@ function Page() {
         <BaseForm
           form={form}
           ref={createFormRef}
-          list={createList(t, getCourseList as ApiFn)}
+          list={createList(t)}
           labelCol={{ span: 5 }}
           data={createData}
           handleFinish={handleCreate}

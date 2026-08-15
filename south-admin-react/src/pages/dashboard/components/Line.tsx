@@ -1,21 +1,34 @@
 import type { EChartsCoreOption } from 'echarts';
+import { Spin } from 'antd';
 
-function Line() {
-  const { t } = useTranslation();
+interface DailyBooking {
+  date: string;
+  count: number;
+}
+
+interface LineProps {
+  data: DailyBooking[] | undefined;
+  loading: boolean;
+}
+
+function Line({ data, loading }: LineProps) {
+  const dates = (data ?? []).map((d) => d.date?.slice(5)); // MM-DD
+  const counts = (data ?? []).map((d) => d.count);
 
   const option: EChartsCoreOption = {
     title: {
-      text: t('dashboard.effectiveRechargeRatio'),
+      text: '近 7 天预约趋势',
       left: 30,
       top: 5,
     },
     xAxis: {
       type: 'category',
       boundaryGap: false,
-      data: ['07-11', '07-12', '07-13', '07-14', '07-15', '07-16', '07-17'],
+      data: dates.length > 0 ? dates : [],
     },
     yAxis: {
       type: 'value',
+      minInterval: 1,
     },
     tooltip: {
       trigger: 'axis',
@@ -28,7 +41,7 @@ function Line() {
     },
     series: [
       {
-        name: t('dashboard.rechargeAmount'),
+        name: '预约数',
         type: 'line',
         areaStyle: {
           color: '#1890ff',
@@ -37,29 +50,20 @@ function Line() {
         emphasis: {
           focus: 'series',
         },
-        data: [120, 140, 120, 190, 150, 111, 160],
-      },
-      {
-        name: t('dashboard.usersNumber'),
-        type: 'line',
-        areaStyle: {
-          color: '#1890ff',
-          opacity: 0.3,
-        },
-        emphasis: {
-          focus: 'series',
-        },
-        data: [90, 122, 90, 140, 123, 280, 200],
+        data: counts,
+        smooth: true,
       },
     ],
   };
 
-  const [echartsRef] = useEcharts(option);
+  const [echartsRef] = useEcharts(option, [data]);
 
   return (
-    <div className="h-550px border border-gray-200 rounded-10px">
-      <div ref={echartsRef} className="w-full h-full"></div>
-    </div>
+    <Spin spinning={loading}>
+      <div className="h-550px border border-gray-200 rounded-10px">
+        <div ref={echartsRef} className="w-full h-full"></div>
+      </div>
+    </Spin>
   );
 }
 

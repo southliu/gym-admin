@@ -1,4 +1,3 @@
-import type { Key, TableRowSelection } from 'antd/es/table/interface';
 import type { FormInstance } from 'antd';
 import { Button, Drawer, Form, Table, message } from 'antd';
 import { useMemo, useCallback } from 'react';
@@ -53,7 +52,6 @@ function Page() {
   const [pageSize, setPageSize] = useState(INIT_PAGINATION.pageSize);
   const [total, setTotal] = useState(0);
   const [tableData, setTableData] = useState<BaseFormData[]>([]);
-  const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([]);
   const [form] = Form.useForm();
   const [searchForm] = Form.useForm();
   const [handleSetSearchParams] = useSearchUrlParams(searchForm);
@@ -217,17 +215,6 @@ function Page() {
     }
   };
 
-  /** 处理批量删除 */
-  const handleBatchDelete = async () => {
-    if (!selectedRowKeys.length) {
-      return messageApi.warning({
-        content: t('public.tableSelectWarning'),
-        key: 'pleaseSelect',
-      });
-    }
-    // 需要后端支持批量删除接口
-  };
-
   /**
    * 处理分页
    * @param page - 当前页数
@@ -237,20 +224,6 @@ function Page() {
     setPage(page);
     setPageSize(pageSize);
     setFetch(true);
-  };
-
-  /**
-   * 监听表格多选变化
-   * @param newSelectedRowKeys - 勾选值
-   */
-  const onSelectChange = (newSelectedRowKeys: Key[]) => {
-    setSelectedRowKeys(newSelectedRowKeys);
-  };
-
-  /** 表格多选  */
-  const rowSelection: TableRowSelection<object> = {
-    selectedRowKeys,
-    onChange: onSelectChange,
   };
 
   /**
@@ -300,16 +273,6 @@ function Page() {
   const columns = useMemo(
     () => tableColumns(t, optionRender, handleViewSchedule),
     [t, optionRender, handleViewSchedule],
-  );
-
-  /** 左侧渲染 */
-  const leftContentRender = (
-    <DeleteBtn
-      isIcon
-      isLoading={isLoading}
-      btnType="batchDelete"
-      handleDelete={handleBatchDelete}
-    />
   );
 
   /** 关闭排班抽屉 */
@@ -407,8 +370,6 @@ function Page() {
           isCreate={pagePermission.create}
           columns={columns}
           dataSource={tableData}
-          rowSelection={rowSelection}
-          leftContent={leftContentRender}
           getPage={getPage}
           onCreate={onCreate}
         />

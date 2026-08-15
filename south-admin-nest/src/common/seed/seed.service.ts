@@ -111,14 +111,14 @@ export class SeedService implements OnApplicationBootstrap {
     // 7) 示例会员/教练账号 + 教练档案关联
     const memberUser = await this.ensureUser({
       username: 'member',
-      password: '123456',
+      password: 'member123',
       name: '示例会员',
       phone: '13800000001',
       role: memberRole,
     });
     const coachUser = await this.ensureUser({
       username: 'coach',
-      password: '123456',
+      password: 'coach123',
       name: '示例教练',
       phone: '13800000002',
       role: coachRole,
@@ -178,7 +178,7 @@ export class SeedService implements OnApplicationBootstrap {
   }
 
   /** 将健身房管理菜单（router LIKE /gym%）授权给教练和会员角色。 */
-  private async assignGymMenusToRoles(coachRole: Role, memberRole: Role): Promise<void> {
+  private async assignGymMenusToRoles(coachRole: Role, _memberRole: Role): Promise<void> {
     // 获取所有健身房菜单
     const gymMenus = await this.menuRepo
       .createQueryBuilder('menu')
@@ -209,26 +209,14 @@ export class SeedService implements OnApplicationBootstrap {
       );
     });
 
-    // 会员角色：课程 + 预约（只读课程，可操作预约）
-    const memberMenus = gymMenus.filter((m) => {
-      return (
-        m.label === '课程管理' ||
-        m.label === '预约管理' ||
-        // 按钮权限
-        (m.type === 3 &&
-          ((m.router === '/gym/course' && ['课程列表', '查看课程', '查看课次'].includes(m.label)) ||
-            (m.router === '/gym/booking' && ['预约列表', '查看预约', '创建预约', '删除预约'].includes(m.label))))
-      );
-    });
+    // 会员角色不分配健身房管理菜单，仅通过会员中心（/member）使用门户功能
 
-    // 也需要给 coach/member 授权健身房管理顶级菜单
+    // 给教练授权健身房管理顶级菜单 + 子菜单
     const topMenu = gymMenus.filter((m) => m.label === '健身房管理');
     const coachAll = [...topMenu, ...coachMenus];
-    const memberAll = [...topMenu, ...memberMenus];
 
     await this.assignMenus(coachRole, coachAll);
-    await this.assignMenus(memberRole, memberAll);
-    this.logger.log('已授权健身房菜单给教练和会员角色');
+    this.logger.log('已授权健身房菜单给教练角色');
   }
 
   /** 将全部健身房管理菜单授权给 admin 角色。 */
@@ -244,7 +232,12 @@ export class SeedService implements OnApplicationBootstrap {
   }
 
   private async ensureRole(name: string, description: string): Promise<Role> {
-    let role = await this.roleRepo.findOne({ where: { name } });
+    // 优先按 description 查找（匹配 init.sql 创建的中文角色名如 '教练'/'会员'）
+    // 再按 name 查找（如 'coach'/'member'），避免创建重复角色
+    let role = await this.roleRepo.findOne({ where: { description } });
+    if (!role) {
+      role = await this.roleRepo.findOne({ where: { name } });
+    }
     if (!role) {
       role = this.roleRepo.create({ name, description });
       role = await this.roleRepo.save(role);
@@ -367,6 +360,23 @@ export class SeedService implements OnApplicationBootstrap {
       user.roles = [input.role];
       user = await this.userRepo.save(user);
       this.logger.log(`创建账号：${input.username} / ${input.password}`);
+    } else {
+      // 用户已存在：确保角色关联和名称正确
+      const hasRole = user.roles?.some((r) => r.id === input.role.id);
+      let needSave = false;
+      if (!hasRole) {
+        user.roles = [input.role, ...(user.roles ?? [])];
+        needSave = true;
+        this.logger.log(`已修正账号角色：${input.username} -> ${input.role.name}`);
+      }
+      // 修正乱码名称（历史数据可能因编码问题存入乱码）
+      if (user.name !== input.name) {
+        user.name = input.name;
+        needSave = true;
+      }
+      if (needSave) {
+        await this.userRepo.save(user);
+      }
     }
     return user;
   }

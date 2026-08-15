@@ -42,8 +42,9 @@ function MemberBookings() {
         pageSize,
         status: statusFilter === 'all' ? undefined : Number(statusFilter),
       });
-      setData(res?.items ?? []);
-      setTotal(res?.total ?? 0);
+      const payload = res?.data ?? res;
+      setData(payload?.items ?? []);
+      setTotal(payload?.total ?? 0);
     } finally {
       setLoading(false);
     }

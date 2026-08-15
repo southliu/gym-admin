@@ -32,8 +32,9 @@ function CoachCourses() {
       setLoading(true);
       try {
         const res: any = await getCoachCourses({ page, pageSize });
-        setData(res?.items ?? []);
-        setTotal(res?.total ?? 0);
+        const payload = res?.data ?? res;
+        setData(payload?.items ?? []);
+        setTotal(payload?.total ?? 0);
       } finally {
         setLoading(false);
       }

@@ -288,14 +288,14 @@ function Page() {
   );
 
   /** 左侧渲染 */
-  const leftContentRender = (
+  const leftContentRender = pagePermission.delete ? (
     <DeleteBtn
       isIcon
       isLoading={isLoading}
       btnType="batchDelete"
       handleDelete={handleBatchDelete}
     />
-  );
+  ) : null;
 
   /** 关闭课次抽屉 */
   const onCloseSessionDrawer = () => {

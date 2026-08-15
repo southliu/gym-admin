@@ -1,15 +1,12 @@
 import { Controller, Get } from '@nestjs/common';
+import { DashboardService } from './dashboard.service';
 
 @Controller('dashboard')
 export class DashboardController {
+  constructor(private readonly dashboardService: DashboardService) {}
+
   @Get('list')
   async list() {
-    return {
-      userCount: 0,
-      roleCount: 0,
-      permissionCount: 0,
-      menuCount: 0,
-      articleCount: 0,
-    };
+    return this.dashboardService.getStatistics();
   }
 }

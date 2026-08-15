@@ -3,6 +3,7 @@ import { useEffect, useMemo } from 'react';
 import { handleRoutes } from '../utils/helper';
 import { useRoutes } from 'react-router-dom';
 import Login from '@/pages/login';
+import Register from '@/pages/register';
 import Forget from '@/pages/forget';
 import NotFound from '@/pages/404';
 import Guards from './Guards';
@@ -58,6 +59,10 @@ function App() {
       {
         path: 'login',
         element: <Login />,
+      },
+      {
+        path: 'register',
+        element: <Register />,
       },
       {
         path: 'forget',

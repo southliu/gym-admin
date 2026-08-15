@@ -1,12 +1,26 @@
 import type { EChartsCoreOption } from 'echarts';
+import { Spin } from 'antd';
 
-const data = [962, 1023, 1112, 1123, 1239, 1382, 1420, 1523, 1622, 1643, 1782, 1928];
+interface TopCourse {
+  courseId: number;
+  courseName: string;
+  bookingCount: number;
+}
 
-function Bar() {
-  const { t } = useTranslation();
+interface BarProps {
+  data: TopCourse[] | undefined;
+  loading: boolean;
+}
+
+function Bar({ data, loading }: BarProps) {
+  // 按 bookingCount 升序排列（柱状图从下到上）
+  const sorted = [...(data ?? [])].sort((a, b) => a.bookingCount - b.bookingCount);
+  const names = sorted.map((c) => c.courseName);
+  const values = sorted.map((c) => c.bookingCount);
+
   const option: EChartsCoreOption = {
     title: {
-      text: t('dashboard.rechargeRankingDay'),
+      text: '热门课程 Top 5',
       left: 30,
       top: 5,
     },
@@ -24,40 +38,33 @@ function Bar() {
     },
     xAxis: {
       type: 'value',
-      boundaryGap: [0, 0.01],
+      name: '预约数',
     },
     yAxis: {
       type: 'category',
-      data: [
-        '孤独的霸气',
-        '凌云齐天',
-        '夏至未至',
-        '叶璃溪',
-        '良辰美景奈何天',
-        '凹凸曼',
-        '六月离别',
-        '离歌',
-        '终极战犯',
-        '水洗晴空',
-        '安城如沫',
-        '渣渣灰',
-      ],
+      data: names.length > 0 ? names : ['暂无数据'],
     },
     series: [
       {
-        name: t('dashboard.rechargeAmount'),
+        name: '预约数',
         type: 'bar',
-        data,
+        data: values.length > 0 ? values : [0],
+        itemStyle: {
+          color: '#1890ff',
+          borderRadius: [0, 4, 4, 0],
+        },
       },
     ],
   };
 
-  const [echartsRef] = useEcharts(option, data);
+  const [echartsRef] = useEcharts(option, [data]);
 
   return (
-    <div className="h-550px border border-gray-200 rounded-10px">
-      <div ref={echartsRef} className="w-full h-full"></div>
-    </div>
+    <Spin spinning={loading}>
+      <div className="h-550px border border-gray-200 rounded-10px">
+        <div ref={echartsRef} className="w-full h-full"></div>
+      </div>
+    </Spin>
   );
 }
 

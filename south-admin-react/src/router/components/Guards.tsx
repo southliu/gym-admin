@@ -27,10 +27,11 @@ function Guards() {
   // 同步检查权限，避免异步导致的页面闪动
   const { token, isValid, shouldRedirect, redirectPath } = useMemo(() => {
     const token = getTokenSync();
-    const isLoginRoute = location.pathname === '/login';
+    const publicRoutes = ['/login', '/register', '/forget', '/403', '/404'];
+    const isPublicRoute = publicRoutes.includes(location.pathname);
 
-    // 有token且访问登录页，需要重定向到首页
-    if (token && isLoginRoute) {
+    // 有token且访问公开页，需要重定向到首页
+    if (token && isPublicRoute) {
       const redirect = new URLSearchParams(location.search).get('redirect');
       return {
         token,
@@ -40,8 +41,8 @@ function Guards() {
       };
     }
 
-    // 无token且访问非登录页，需要重定向到登录页
-    if (!token && !isLoginRoute) {
+    // 无token且访问非公开页，需要重定向到登录页
+    if (!token && !isPublicRoute) {
       const param =
         location.pathname?.length > 1 ? `?redirect=${location.pathname}${location.search}` : '';
       return {
@@ -53,7 +54,7 @@ function Guards() {
     }
 
     // 其他情况正常渲染
-    return { token, isValid: !!token || isLoginRoute, shouldRedirect: false, redirectPath: '' };
+    return { token, isValid: !!token || isPublicRoute, shouldRedirect: false, redirectPath: '' };
   }, [location.pathname, location.search]);
 
   const [redirected, setRedirected] = useState(false);
@@ -115,7 +116,8 @@ function Guards() {
   }, [token, isValid]);
 
   // 渲染页面内容
-  if (location.pathname === '/login' && token) {
+  const publicRoutes = ['/login', '/register', '/forget', '/403', '/404'];
+  if (publicRoutes.includes(location.pathname) && token) {
     return <div>{outlet}</div>;
   }
 

@@ -54,8 +54,9 @@ function CoachSessions() {
     setLoading(true);
     try {
       const res: any = await getCoachSessions({ page, pageSize });
-      setData(res?.items ?? []);
-      setTotal(res?.total ?? 0);
+      const payload = res?.data ?? res;
+      setData(payload?.items ?? []);
+      setTotal(payload?.total ?? 0);
     } finally {
       setLoading(false);
     }
@@ -70,7 +71,8 @@ function CoachSessions() {
     setRosterLoading(true);
     try {
       const res: any = await getCoachSessionBookings(session.id);
-      setRoster({ open: true, session, bookings: res?.bookings ?? [] });
+      const payload = res?.data ?? res;
+      setRoster({ open: true, session, bookings: payload?.bookings ?? [] });
     } finally {
       setRosterLoading(false);
     }

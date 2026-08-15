@@ -38,9 +38,10 @@ function CoachSchedule() {
       setLoading(true);
       try {
         const res: any = await getCoachSchedule();
-        setProfile(res?.coach ?? null);
-        setTemplates(res?.templates ?? []);
-        setOverrides(res?.overrides ?? []);
+        const payload = res?.data ?? res;
+        setProfile(payload?.coach ?? null);
+        setTemplates(payload?.templates ?? []);
+        setOverrides(payload?.overrides ?? []);
       } finally {
         setLoading(false);
       }

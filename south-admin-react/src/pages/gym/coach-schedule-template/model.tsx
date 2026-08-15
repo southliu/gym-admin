@@ -70,11 +70,6 @@ export const tableColumns = (t: TFunction, optionRender: TableOptions<object>): 
       width: 100,
     },
     {
-      title: t('gym.course'),
-      dataIndex: 'courseName',
-      width: 150,
-    },
-    {
       title: t('public.creationTime'),
       dataIndex: 'createdAt',
       width: 170,
@@ -97,7 +92,6 @@ export const tableColumns = (t: TFunction, optionRender: TableOptions<object>): 
 // 新增/编辑表单数据
 export const createList = (
   t: TFunction,
-  courseApiFn: ApiFn,
 ): BaseFormList[] => [
   {
     label: t('gym.coachName'),
@@ -136,16 +130,6 @@ export const createList = (
     componentProps: {
       style: { width: '100%' },
       format: 'HH:mm',
-    },
-  },
-  {
-    label: t('gym.course'),
-    name: 'courseId',
-    rules: FORM_REQUIRED,
-    component: 'ApiSelect',
-    componentProps: {
-      api: courseApiFn,
-      allowClear: true,
     },
   },
 ];

@@ -16,6 +16,7 @@ import {
   UpdateUserDto,
   UpdatePasswordDto,
   PaginationDto,
+  RegisterDto,
 } from '../dto/user.dto';
 import { UserInfo } from '../../common/decorators/current-user.decorator';
 import { ApiResponse } from '../../common/responses/api-response.dto';
@@ -84,6 +85,75 @@ export class UserService {
         permissions,
       },
       '登录成功',
+    );
+  }
+
+  async register(registerDto: RegisterDto) {
+    const { username, password, name, phone } = registerDto;
+
+    // 校验用户名唯一
+    const existingUser = await this.userRepository.findOne({
+      where: { username },
+    });
+    if (existingUser) {
+      throw new BadRequestException('用户名已存在');
+    }
+
+    // 加密密码
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // 自动分配 member 角色
+    const memberRole = await this.roleRepository.findOne({
+      where: { name: 'member' },
+    });
+    if (!memberRole) {
+      throw new BadRequestException('系统未初始化会员角色，请联系管理员');
+    }
+
+    const user = this.userRepository.create({
+      username,
+      password: hashedPassword,
+      name: name || null,
+      phone: phone || null,
+      status: 1,
+    });
+    user.roles = [memberRole];
+    await this.userRepository.save(user);
+
+    // 注册成功后自动登录，返回 token + 用户信息 + 权限
+    const savedUser = await this.userRepository.findOne({
+      where: { username },
+      relations: ['roles', 'roles.menus', 'roles.menus.permission'],
+    });
+
+    const payload: UserInfo = {
+      id: savedUser.id,
+      username: savedUser.username,
+      name: savedUser.name,
+      email: savedUser.email,
+      phone: savedUser.phone,
+      status: savedUser.status,
+      roles: savedUser.roles?.map((item) => item.id),
+      roleNames: savedUser.roles?.map((item) => item.name) ?? [],
+    };
+
+    const token = await this.jwtService.signAsync(payload);
+    const permissions = this.getUserPermissions(savedUser);
+
+    return ApiResponse.success(
+      {
+        token,
+        user: {
+          id: savedUser.id,
+          username: savedUser.username,
+          email: savedUser.email,
+          phone: savedUser.phone,
+        },
+        roles: savedUser.roles?.map((role) => String(role.id)) || [],
+        roleNames: savedUser.roles?.map((role) => role.name) || [],
+        permissions,
+      },
+      '注册成功',
     );
   }
 

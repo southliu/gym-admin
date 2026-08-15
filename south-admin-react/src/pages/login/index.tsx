@@ -210,6 +210,11 @@ function Login() {
     navigate(`/forget${search}`);
   };
 
+  /** 点击注册 */
+  const onRegister = () => {
+    navigate('/register');
+  };
+
   return (
     <>
       {contextHolder}
@@ -303,8 +308,13 @@ function Login() {
               {t('login.rememberMe')}
             </Checkbox>
 
-            <div className="text-blue-500 cursor-pointer" onClick={onForgetPassword}>
-              {t('login.forgetPassword')}
+            <div className="flex gap-15px">
+              <div className="text-blue-500 cursor-pointer" onClick={onRegister}>
+                {'注册账号'}
+              </div>
+              <div className="text-blue-500 cursor-pointer" onClick={onForgetPassword}>
+                {t('login.forgetPassword')}
+              </div>
             </div>
           </div>
         </div>

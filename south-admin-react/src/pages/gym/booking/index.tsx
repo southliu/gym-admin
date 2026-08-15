@@ -7,7 +7,6 @@ import { createList, searchList, tableColumns } from './model';
 import {
   createBooking,
   cancelBooking,
-  deleteBooking,
   getBookingPage,
 } from '@/servers/gym/booking';
 import { getSessionList } from '@/servers/gym/session';
@@ -134,23 +133,6 @@ function Page() {
   };
 
   /**
-   * 点击删除
-   * @param id - 唯一值
-   */
-  const onDelete = async (id: string) => {
-    try {
-      setLoading(true);
-      const { code, message } = await deleteBooking(id);
-      if (Number(code) === 200) {
-        messageApi.success(message || t('public.successfullyDeleted'));
-        getPage();
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  /**
    * 取消预约
    * @param id - 预约ID
    */
@@ -214,36 +196,30 @@ function Page() {
       return (
         <div className="flex flex-wrap gap-5px">
           {pagePermission.delete === true && (
-            <>
-              <DeleteBtn
-                name={t('gym.booking')}
-                customizeTitle={t('gym.cancelBooking')}
-                handleDelete={() => onCancel(row.id)}
-              />
-              <DeleteBtn
-                name={row.name}
-                handleDelete={() => onDelete(row.id)}
-              />
-            </>
+            <DeleteBtn
+              name={t('gym.booking')}
+              customizeTitle={t('gym.cancelBooking')}
+              handleDelete={() => onCancel(row.id)}
+            />
           )}
         </div>
       );
     },
-    [pagePermission.delete, onCancel, onDelete],
+    [pagePermission.delete, onCancel],
   );
 
   // 缓存列配置
   const columns = useMemo(() => tableColumns(t, optionRender), [t, optionRender]);
 
   /** 左侧渲染 */
-  const leftContentRender = (
+  const leftContentRender = pagePermission.delete ? (
     <DeleteBtn
       isIcon
       isLoading={isLoading}
       btnType="batchDelete"
       handleDelete={handleBatchDelete}
     />
-  );
+  ) : null;
 
   // 课程变化时清空已选课次（跳过初始表单数据加载阶段）
   useEffect(() => {

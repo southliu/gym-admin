@@ -48,8 +48,11 @@ export class RoleController {
   }
 
   @Get('authorize')
-  async getAuthorize(@Query('roleId') roleId: number) {
-    return await this.roleService.getAuthorize(roleId);
+  async getAuthorize(@Query('roleId') roleId?: string) {
+    if (!roleId || isNaN(Number(roleId))) {
+      return { treeData: [], defaultCheckedKeys: [] };
+    }
+    return await this.roleService.getAuthorize(Number(roleId));
   }
 
   @Put('authorize/save')

@@ -161,18 +161,26 @@ export class RoleService {
   async getAuthorize(roleId: number) {
     const role = await this.roleRepository.findOne({
       where: { id: roleId },
-      relations: ['menus', 'menus.parent'],
+      relations: ['menus'],
     });
 
     if (!role || role.isDeleted === 1) {
       throw new NotFoundException('Role not found');
     }
 
-    const menuIds = role.menus?.map((menu) => menu.id) || [];
-    const treeData = buildTree(role.menus, null);
+    // 已分配给该角色的菜单 ID
+    const checkedIds = role.menus?.map((menu) => menu.id) || [];
+
+    // 加载全部未删除菜单来构建完整树，让用户可以勾选/取消
+    const allMenus = await this.menuRepository.find({
+      where: { isDeleted: 0 },
+      relations: ['parent'],
+      order: { order: 'ASC' },
+    });
+    const treeData = buildTree(allMenus, null);
 
     return {
-      defaultCheckedKeys: menuIds,
+      defaultCheckedKeys: checkedIds,
       treeData: treeData,
     };
   }

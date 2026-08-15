@@ -49,8 +49,9 @@ function MemberCourses() {
     setLoading(true);
     try {
       const res: any = await getMemberCourses({ page, pageSize, name: keyword || undefined });
-      setData(res?.items ?? []);
-      setTotal(res?.total ?? 0);
+      const payload = res?.data ?? res;
+      setData(payload?.items ?? []);
+      setTotal(payload?.total ?? 0);
     } finally {
       setLoading(false);
     }
@@ -65,7 +66,8 @@ function MemberCourses() {
     setSessionLoading(true);
     try {
       const res: any = await getMemberSessions(course.id);
-      setSessionModal({ open: true, course, sessions: res?.sessions ?? [] });
+      const payload = res?.data ?? res;
+      setSessionModal({ open: true, course, sessions: payload?.sessions ?? [] });
     } finally {
       setSessionLoading(false);
     }
@@ -78,7 +80,8 @@ function MemberCourses() {
       // 刷新课次余量
       if (sessionModal.course) {
         const res: any = await getMemberSessions(sessionModal.course.id);
-        setSessionModal({ open: true, course: sessionModal.course, sessions: res?.sessions ?? [] });
+        const payload = res?.data ?? res;
+        setSessionModal({ open: true, course: sessionModal.course, sessions: payload?.sessions ?? [] });
       }
     } catch (e: any) {
       messageApi.error(e?.message || '预约失败');

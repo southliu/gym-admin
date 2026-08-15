@@ -233,14 +233,14 @@ function Page() {
   const columns = useMemo(() => tableColumns(t, optionRender), [t, optionRender]);
 
   /** 左侧渲染 */
-  const leftContentRender = (
+  const leftContentRender = pagePermission.delete ? (
     <DeleteBtn
       isIcon
       isLoading={isLoading}
       btnType="batchDelete"
       handleDelete={handleBatchDelete}
     />
-  );
+  ) : null;
 
   return (
     <BaseContent isPermission={pagePermission.page}>

@@ -17,7 +17,7 @@ import { PaginationDto } from '../../common/dto/pagination.dto';
 
 /**
  * 会员端业务：浏览可约课程、查看课次、发起/取消预约、查看自己的预约记录。
- * 所有接口均由 MemberController 通过 @Roles 限制为会员角色，userId 取自登录态。
+ * 浏览类接口不限制角色，写操作由 MemberController 通过 @Roles 限制为会员角色，userId 取自登录态。
  */
 @Injectable()
 export class MemberService {
@@ -252,7 +252,9 @@ export class MemberService {
         session: session
           ? {
               id: session.id,
-              sessionDate: session.sessionDate,
+              sessionDate: session.sessionDate
+                ? new Date(session.sessionDate).toISOString().split('T')[0]
+                : null,
               startTime: session.startTime,
               endTime: session.endTime,
               courseName: course?.name ?? null,

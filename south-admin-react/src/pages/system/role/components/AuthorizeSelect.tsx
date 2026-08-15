@@ -4,11 +4,11 @@ import { getRolePermission, type PermissionData } from '@/servers/system/role';
 import MenuAuthorize from './MenuAuthorize';
 
 interface Props extends SelectProps {
-  id: string;
+  roleId: string;
 }
 
 function AuthorizeSelect(props: Props) {
-  const { id, value, onChange } = props;
+  const { roleId, value, onChange } = props;
   const [list, setList] = useState<PermissionData[]>([]);
   const [isLoading, setLoading] = useState(false);
 
@@ -18,7 +18,7 @@ function AuthorizeSelect(props: Props) {
 
   /** 获取数据 */
   const getList = async () => {
-    const params = { roleId: id };
+    const params = { roleId };
 
     try {
       setLoading(true);
